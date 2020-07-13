@@ -6,11 +6,12 @@ import RegistrationPage from './pages/Registration';
 import LoginPage from './pages/Login';
 import HelperPage from './pages/Helper';
 import UserPage from './pages/UserPages';
-import { BrowserRouter, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ThemeProvider } from '@material-ui/core';
 import { theme } from './utils/theme';
 import { Provider } from 'react-redux';
 import ExamEditor from './pages/ExamEditor';
+import Error from './pages/Error';
 
 function App() {
 	return (
@@ -28,24 +29,29 @@ function App() {
 function Routes() {
 	return (
 		<>
-			<Route path="/" exact>
-				<LandingPage />
-			</Route>
-			<Route path="/help">
-				<HelperPage />
-			</Route>
-			<Route path="/exam-editor">
-				<ExamEditor />
-			</Route>
-			<Route path="/u">
-				<UserPage />
-			</Route>
-			<Route path="/register/:role?">
-				<RegistrationPage />
-			</Route>
-			<Route path="/login/:role?">
-				<LoginPage />
-			</Route>
+			<Switch>
+				<Route path="/" exact>
+					<LandingPage />
+				</Route>
+				<Route path="/help">
+					<HelperPage />
+				</Route>
+				<Route path="/exam-editor">
+					<ExamEditor />
+				</Route>
+				<Route path="/u">
+					<UserPage />
+				</Route>
+				<Route path="/register/:role?">
+					<RegistrationPage />
+				</Route>
+				<Route path="/login/:role?">
+					<LoginPage />
+				</Route>
+				<Route path="*">
+					<Error nav />
+				</Route>
+			</Switch>
 		</>
 	);
 }
