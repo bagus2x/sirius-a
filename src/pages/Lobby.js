@@ -73,7 +73,7 @@ function LobbyPage(props) {
 						>
 							<Teacher />
 						</Box>
-						<Typography variant="h5">Student</Typography>
+						<Typography variant="h5">Teacher</Typography>
 					</Box>
 					<Box display="flex" flexDirection="column" alignItems="center">
 						<Box
