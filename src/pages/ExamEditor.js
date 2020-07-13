@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { MuiPickersUtilsProvider, DateTimePicker } from '@material-ui/pickers';
+import { makeStyles } from '@material-ui/core/styles';
 import DateFnsUtils from '@date-io/moment';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -15,35 +16,36 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Slide from '@material-ui/core/Slide';
 import Add from '@material-ui/icons/AddRounded';
-import Alarm from '@material-ui/icons/AlarmAddRounded';
+import SaveIcon from '@material-ui/icons/SaveRounded';
+import UploadIcon from '@material-ui/icons/CloudUploadRounded';
 import More from '@material-ui/icons/MoreVertRounded';
-import { KeyboardDatePicker, KeyboardTimePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
-import {
-	DialogTitle,
-	DialogContentText,
-	RadioGroup,
-	FormControl,
-	Paper,
-	TableContainer,
-	TableHead,
-	TableRow,
-	Table,
-	TableCell,
-	TableBody,
-} from '@material-ui/core';
+import ExpandIcon from '@material-ui/icons/ExpandMoreRounded';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControl from '@material-ui/core/FormControl';
+import Accordion from '@material-ui/core/Accordion';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import Table from '@material-ui/core/Table';
+import TableRow from '@material-ui/core/TableRow';
+import TableCell from '@material-ui/core/TableCell';
+import TableBody from '@material-ui/core/TableBody';
 
 const useStyles = makeStyles((theme) => ({
 	root: {
 		width: '100vw',
 		height: window.innerHeight,
 		background: theme.palette.primary.light,
+		overflowY: 'scroll',
+		overflowX: 'hidden',
 	},
 	editorPage: {
 		margin: '0 auto',
 		width: '100%',
 		maxWidth: 960,
 		background: '#fff',
-		height: '100%',
+		minHeight: '100%',
 		padding: `${theme.spacing(4)}px`,
 		[theme.breakpoints.down('xs')]: {
 			padding: theme.spacing(0.5),
@@ -62,31 +64,46 @@ const useStyles = makeStyles((theme) => ({
 		marginBottom: theme.spacing(1),
 		color: theme.palette.primary.dark,
 	},
-	editor: {},
-	headerEditor: {},
+	heading: {
+		fontSize: theme.typography.pxToRem(15),
+		fontWeight: theme.typography.fontWeightRegular,
+	},
+	accordSum: {
+		width: '100%',
+	},
 }));
 
-const Transition = React.forwardRef(function Transition(props, ref) {
-	return <Slide direction="up" ref={ref} {...props} />;
-});
+function sinceEpoch(date) {
+	return new Date(date).getTime();
+}
 
 function ExamEditor() {
 	const classes = useStyles();
 	const matches = useMediaQuery('(max-width:960px)');
 	const [open, setOpen] = useState(false);
-	const [selectedDate, setSelectedDate] = useState(new Date('2014-08-18T21:11:54'));
 	const [questions, setQuestions] = useState([]);
-	const handleDateChange = (date) => {
-		setSelectedDate(date);
+	const [detail, setDetail] = useState({
+		title: '',
+		subject: '',
+		description: ''
+	}); // Title, description, subject
+	const handleDetailChange = (e) => setDetail((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+	const handleStartDate = (date) => setDetail((prev) => ({ ...prev, startDate: sinceEpoch(date._d) }));
+	const handleEndDate = (date) => setDetail((prev) => ({ ...prev, endDate: sinceEpoch(date._d) }));
+	const handleSave = () => {
+		console.log(detail, questions)
 	};
-
-	useEffect(() => {
-		console.log(questions);
-	}, [questions]);
-
 	return (
 		<div className={classes.root}>
 			<div className={classes.editorPage}>
+				<Box mb={2}>
+					<IconButton onClick={handleSave}>
+						<SaveIcon />
+					</IconButton>
+					<IconButton>
+						<UploadIcon />
+					</IconButton>
+				</Box>
 				<div className={classes.header}>
 					<Typography variant="body1">Detail</Typography>
 					<IconButton color="primary">
@@ -96,55 +113,39 @@ function ExamEditor() {
 				<Box p={2.25}>
 					<Grid container spacing={2}>
 						<Grid item xs={12}>
-							<TextField label="Title" fullWidth />
+							<TextField onBlur={handleDetailChange} name="title" label="Title" fullWidth />
 						</Grid>
 						<Grid item xs={12}>
-							<TextField label="Subject" fullWidth />
+							<TextField onBlur={handleDetailChange} name="subject" label="Subject" fullWidth />
 						</Grid>
 						<Grid item xs={12}>
-							<TextField multiline label="Description" fullWidth />
+							<TextField
+								onBlur={handleDetailChange}
+								name="description"
+								multiline
+								label="Description"
+								fullWidth
+							/>
 						</Grid>
 						<MuiPickersUtilsProvider utils={DateFnsUtils}>
-							<Grid item xs={12} sm={4}>
-								<KeyboardDatePicker
+							<Grid item xs={6}>
+								<DateTimePicker
 									margin="normal"
-									id="date-picker-dialog"
-									label="Date"
-									format="MM/dd/yyyy"
-									value={selectedDate}
-									onChange={handleDateChange}
-									fullWidth
-									KeyboardButtonProps={{
-										'aria-label': 'choose date',
-									}}
-								/>
-							</Grid>
-							<Grid item xs={6} sm={4}>
-								<KeyboardTimePicker
-									margin="normal"
-									id="time-picker"
+									id="date-time-picker"
 									label="Start from"
-									value={selectedDate}
-									onChange={handleDateChange}
+									value={detail.startDate}
+									onChange={handleStartDate}
 									fullWidth
-									KeyboardButtonProps={{
-										'aria-label': 'choose start time',
-									}}
-									keyboardIcon={<Alarm />}
 								/>
 							</Grid>
-							<Grid item xs={6} sm={4}>
-								<KeyboardTimePicker
+							<Grid item xs={6}>
+								<DateTimePicker
 									margin="normal"
-									id="time-picker"
+									id="date2-time-picker"
 									label="End at"
-									value={selectedDate}
-									onChange={handleDateChange}
+									value={detail.endDate}
+									onChange={handleEndDate}
 									fullWidth
-									KeyboardButtonProps={{
-										'aria-label': 'choose end time',
-									}}
-									keyboardIcon={<Alarm />}
 								/>
 							</Grid>
 						</MuiPickersUtilsProvider>
@@ -158,7 +159,7 @@ function ExamEditor() {
 				</div>
 				<Dialog
 					open={open}
-					TransitionComponent={Transition}
+					TransitionComponent={Slide}
 					disableBackdropClick
 					onClose={() => setOpen(false)}
 					aria-labelledby="alert-dialog-slide-title"
@@ -169,60 +170,59 @@ function ExamEditor() {
 				>
 					<EditorDialog setOpen={setOpen} setQuestions={setQuestions} questions={questions} />
 				</Dialog>
-				<TableContainer component={Paper}>
-					<Table className={classes.table} aria-label="simple table">
-						<TableHead>
-							<TableRow>
-								<TableCell>Question</TableCell>
-								<TableCell align="left">Category</TableCell>
-								<TableCell align="left">Option A</TableCell>
-								<TableCell align="left">Option B</TableCell>
-								<TableCell align="left">Option C</TableCell>
-								<TableCell align="left">Option D</TableCell>
-								<TableCell align="left">Option E</TableCell>
-								<TableCell align="left">Key</TableCell>
-							</TableRow>
-						</TableHead>
-						<TableBody>
-							{questions.map((row, i) => (
-								<TableRow key={i}>
-									<TableCell component="th" scope="row">
-										{row.question}
-									</TableCell>
-									<TableCell align="left">{row.category}</TableCell>
-									<TableCell align="left">{row.optionA}</TableCell>
-									<TableCell align="left">{row.optionB}</TableCell>
-									<TableCell align="left">{row.optionC}</TableCell>
-									<TableCell align="left">{row.optionD}</TableCell>
-									<TableCell align="left">{row.optionE}</TableCell>
-									<TableCell align="left">{row.key}</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				</TableContainer>
-				{/* {questions.map((question, i) => (
-
-				))} */}
+				{questions.map((question, i) => (
+					<Accordion key={i}>
+						<AccordionSummary aria-controls="panel2d-content" expandIcon={<ExpandIcon />}>
+							<Typography>Number {i + 1}</Typography>
+						</AccordionSummary>
+						<AccordionDetails>
+							<Table>
+								<TableBody>
+									{[
+										'question',
+										'category',
+										'key',
+										'optionA',
+										'optionB',
+										'optionC',
+										'optionD',
+										'optionE',
+									].map((v, i) => (
+										<TableRow key={i}>
+											<TableCell>{v}</TableCell>
+											<TableCell>{question[v]}</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</AccordionDetails>
+					</Accordion>
+				))}
 			</div>
 		</div>
 	);
 }
 
 function EditorDialog({ setOpen, setQuestions, questions }) {
-	const [question, setQuestion] = useState({ key: '' });
+	const [question, setQuestion] = useState({
+		key: '',
+		optionA: '',
+		optionB: '',
+		optionC: '',
+		optionD: '',
+		optionE: '',
+		question: '',
+	});
 	const [alert, setAlert] = useState(false);
 	const questionHandlerChange = (e) => {
-		console.log(e.target.value)
 		setQuestion((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 	};
 	const handlerAdd = () => {
 		for (let k in question) {
-			if (!question[k]) return
+			if (!question[k]) return;
 		}
 		setQuestions([...questions, question]);
 		setOpen(false);
-		console.log(question);
 	};
 	const handlerDiscard = () => {
 		for (let k in question) {
@@ -246,11 +246,10 @@ function EditorDialog({ setOpen, setQuestions, questions }) {
 				aria-describedby="alert-dialog-description"
 				keepMounted
 			>
-				<DialogTitle id="alert-dialog-title">{"Use Google's location service?"}</DialogTitle>
+				<DialogTitle id="alert-dialog-title">Keluar?</DialogTitle>
 				<DialogContent>
 					<DialogContentText id="alert-dialog-description">
-						Let Google help apps determine location. This means sending anonymous location data to Google,
-						even when no apps are running.
+						Apa anda yakin tidak akan menyimpan yang anda tulis?
 					</DialogContentText>
 				</DialogContent>
 				<DialogActions>
@@ -268,45 +267,31 @@ function EditorDialog({ setOpen, setQuestions, questions }) {
 	return (
 		<>
 			<DialogContent>
-				<Box mt={2}>
-					<TextField
-						onBlur={questionHandlerChange}
-						name="question"
-						multiline
-						fullWidth
-						label="Question"
-					></TextField>
-				</Box>
-				<Box mt={2}>
-					<TextField
-						onBlur={questionHandlerChange}
-						name="category"
-						fullWidth
-						label="Category/Sub bab"
-					></TextField>
-				</Box>
 				<FormControl fullWidth>
+					<Box mt={2}>
+						<TextField
+							onBlur={questionHandlerChange}
+							name="question"
+							multiline
+							fullWidth
+							label="Question"
+						></TextField>
+					</Box>
+					<Box mt={2}>
+						<TextField
+							onBlur={questionHandlerChange}
+							name="category"
+							fullWidth
+							label="Category/Sub bab"
+						></TextField>
+					</Box>
 					<RadioGroup name="key" onChange={questionHandlerChange} value={question.key}>
-						<Box mt={2} display="flex">
-							<Radio value="optionA" />
-							<TextField onBlur={questionHandlerChange} name="optionA" label="A" fullWidth />
-						</Box>
-						<Box mt={2} display="flex">
-							<Radio value="optionB" />
-							<TextField onBlur={questionHandlerChange} name="optionB" label="B" fullWidth />
-						</Box>
-						<Box mt={2} display="flex">
-							<Radio value="optionC" />
-							<TextField onBlur={questionHandlerChange} name="optionC" label="C" fullWidth />
-						</Box>
-						<Box mt={2} display="flex">
-							<Radio value="optionD" />
-							<TextField onBlur={questionHandlerChange} name="optionD" label="D" fullWidth />
-						</Box>
-						<Box mt={2} display="flex">
-							<Radio value="optionE" />
-							<TextField onBlur={questionHandlerChange} name="optionE" label="E" fullWidth />
-						</Box>
+						{['A', 'B', 'C', 'D', 'E'].map((v, i) => (
+							<Box key={i} mt={2} display="flex">
+								<Radio value={`option${v}`} />
+								<TextField onBlur={questionHandlerChange} name={`option${v}`} label={v} fullWidth />
+							</Box>
+						))}
 					</RadioGroup>
 				</FormControl>
 			</DialogContent>
