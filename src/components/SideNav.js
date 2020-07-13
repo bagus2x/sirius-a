@@ -4,13 +4,16 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import HomeRounded from '@material-ui/icons/HomeRounded';
 import Description from '@material-ui/icons/DescriptionRounded';
+import Person from '@material-ui/icons/PersonRounded';
 import Pie from '@material-ui/icons/PieChartRounded';
 import { ReactComponent as Profile } from '../assets/images/profile.svg';
 import blue from '@material-ui/core/colors/blue';
 import MoreVert from '@material-ui/icons/MoreVertRounded';
 import IconButton from '@material-ui/core/IconButton';
 import { Link, useRouteMatch } from 'react-router-dom';
-
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import BottomNavigation from '@material-ui/core/BottomNavigation';
+import BottomNavigationAction from '@material-ui/core/BottomNavigationAction';
 const useStyles = makeStyles((theme) => ({
 	appBarVert: {
 		display: 'flex',
@@ -55,12 +58,18 @@ const useStyles = makeStyles((theme) => ({
 		height: '100vh',
 		paddingLeft: theme.spacing(4),
 	},
+	stickToBottom: {
+		width: '100%',
+		position: 'fixed',
+		bottom: 0,
+	},
 }));
 
-function SideNav() {
+function UserNav() {
 	const classes = useStyles();
 	const [value, setValue] = React.useState(0);
 	const path = useRouteMatch().params.nav || '';
+	const matches = useMediaQuery('(max-width:600px)');
 	useEffect(() => {
 		switch (path) {
 			case '':
@@ -77,6 +86,20 @@ function SideNav() {
 	const handleChange = (event, newValue) => {
 		setValue(newValue);
 	};
+	if (matches)
+		return (
+			<BottomNavigation
+				classes={{ root: classes.stickToBottom }}
+				value={value}
+				onChange={handleChange}
+				className={classes.root}
+			>
+				<BottomNavigationAction label="Home" value="home" icon={<HomeRounded />} />
+				<BottomNavigationAction label="Task" value="task" icon={<Description />} />
+				<BottomNavigationAction label="Analytic" value="analytics" icon={<Pie />} />
+				<BottomNavigationAction label="Profile" value="profile" icon={<Person />} />
+			</BottomNavigation>
+		);
 
 	return (
 		<div className={classes.containera}>
@@ -91,9 +114,27 @@ function SideNav() {
 					classes={{ indicator: classes.indicator, flexContainerVertical: classes.tabsCont }}
 					orientation="vertical"
 				>
-					<Tab disableRipple classes={{ root: classes.cutsomTab }} icon={<HomeRounded />} component={Link} to="/u/" />
-					<Tab disableRipple classes={{ root: classes.cutsomTab }} icon={<Description />} component={Link} to="/u/task" />
-					<Tab disableRipple classes={{ root: classes.cutsomTab }} icon={<Pie />} component={Link} to="/u/analytics" />
+					<Tab
+						disableRipple
+						classes={{ root: classes.cutsomTab }}
+						icon={<HomeRounded />}
+						component={Link}
+						to="/u/"
+					/>
+					<Tab
+						disableRipple
+						classes={{ root: classes.cutsomTab }}
+						icon={<Description />}
+						component={Link}
+						to="/u/task"
+					/>
+					<Tab
+						disableRipple
+						classes={{ root: classes.cutsomTab }}
+						icon={<Pie />}
+						component={Link}
+						to="/u/analytics"
+					/>
 				</Tabs>
 				<IconButton disableRipple className={classes.iconNav}>
 					<MoreVert />
@@ -103,4 +144,4 @@ function SideNav() {
 	);
 }
 
-export default SideNav;
+export default UserNav;
