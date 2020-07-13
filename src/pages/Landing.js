@@ -8,11 +8,12 @@ import Button from '@material-ui/core/Button';
 import { ReactComponent as MainBG } from '../assets/images/main-bg.svg';
 import Typography from '@material-ui/core/Typography';
 import { Link } from 'react-router-dom';
+import { Hidden } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
 	root: {
 		width: '100vw',
-		overflow: 'hidden'
+		overflow: 'hidden',
 	},
 	brand: {
 		marginRight: theme.spacing(2),
@@ -72,7 +73,12 @@ function LandingPage() {
 		<div className={classes.root}>
 			<AppBar elevation={0} color="transparent" position="static">
 				<Toolbar className={classes.toolBar}>
-					<Logo />
+					<Box display="flex" gridGap={2} alignItems="center">
+						<Logo />
+						<Hidden xsDown>
+							<Typography variant="h6">SIRIUS</Typography>
+						</Hidden>
+					</Box>
 					<Box>
 						<Button component={Link} to="/login" color="default" variant="text">
 							Login
