@@ -69,7 +69,10 @@ function UserNav() {
 	const classes = useStyles();
 	const [value, setValue] = React.useState(0);
 	const path = useRouteMatch().params.nav || '';
-	const matches = useMediaQuery('(max-width:600px)');
+	// prevent flickering sidebar on render
+	// 0 = width <= 600px, 1 = width > 600px
+	const matcheDesktop = useMediaQuery('(min-width:600px)');
+	const matcheMobile = useMediaQuery('(max-width:600px)');
 	useEffect(() => {
 		switch (path) {
 			case '':
@@ -86,7 +89,7 @@ function UserNav() {
 	const handleChange = (event, newValue) => {
 		setValue(newValue);
 	};
-	if (matches)
+	if (matcheMobile)
 		return (
 			<BottomNavigation
 				classes={{ root: classes.stickToBottom }}
@@ -101,47 +104,49 @@ function UserNav() {
 			</BottomNavigation>
 		);
 
-	return (
-		<div className={classes.containera}>
-			<div className={classes.appBarVert}>
-				<div>
-					<Profile />
+	if (matcheDesktop)
+		return (
+			<div className={classes.containera}>
+				<div className={classes.appBarVert}>
+					<div>
+						<Profile />
+					</div>
+					<Tabs
+						value={value}
+						onChange={handleChange}
+						variant="fullWidth"
+						classes={{ indicator: classes.indicator, flexContainerVertical: classes.tabsCont }}
+						orientation="vertical"
+					>
+						<Tab
+							disableRipple
+							classes={{ root: classes.cutsomTab }}
+							icon={<HomeRounded />}
+							component={Link}
+							to="/u/"
+						/>
+						<Tab
+							disableRipple
+							classes={{ root: classes.cutsomTab }}
+							icon={<Description />}
+							component={Link}
+							to="/u/task"
+						/>
+						<Tab
+							disableRipple
+							classes={{ root: classes.cutsomTab }}
+							icon={<Pie />}
+							component={Link}
+							to="/u/analytics"
+						/>
+					</Tabs>
+					<IconButton disableRipple className={classes.iconNav}>
+						<MoreVert />
+					</IconButton>
 				</div>
-				<Tabs
-					value={value}
-					onChange={handleChange}
-					variant="fullWidth"
-					classes={{ indicator: classes.indicator, flexContainerVertical: classes.tabsCont }}
-					orientation="vertical"
-				>
-					<Tab
-						disableRipple
-						classes={{ root: classes.cutsomTab }}
-						icon={<HomeRounded />}
-						component={Link}
-						to="/u/"
-					/>
-					<Tab
-						disableRipple
-						classes={{ root: classes.cutsomTab }}
-						icon={<Description />}
-						component={Link}
-						to="/u/task"
-					/>
-					<Tab
-						disableRipple
-						classes={{ root: classes.cutsomTab }}
-						icon={<Pie />}
-						component={Link}
-						to="/u/analytics"
-					/>
-				</Tabs>
-				<IconButton disableRipple className={classes.iconNav}>
-					<MoreVert />
-				</IconButton>
 			</div>
-		</div>
-	);
+		);
+	return '';
 }
 
 export default UserNav;
