@@ -40,7 +40,7 @@ const useStyles = makeStyles((theme) => ({
 		borderRadius: theme.spacing(2),
 	},
 	message: {
-		bottom: 50,
+		bottom: 30,
 		textAlign: 'center',
 		width: '100%',
 		padding: `0 ${theme.spacing(2)}px`,
