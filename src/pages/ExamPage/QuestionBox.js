@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Paper from '@material-ui/core/Paper';
@@ -28,6 +28,8 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import green from '@material-ui/core/colors/green';
 import Axios from 'axios';
 import { useHistory } from 'react-router-dom';
+import AlertDialog from '../../components/AlertDialog';
+import { CircularProgress } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
 	questionBox: {
@@ -128,9 +130,14 @@ const QuestionBox = ({ dum, paperID }) => {
 	const classes = useStyles();
 	const [drawer, setDrawer] = useState(false);
 	const [number, setNumber] = useState(0);
+	const [open, setOpen] = useState(false);
+	const [openErrorAlert, setOpenErrorAlert] = useState(false);
 	const [answer, setAnswer] = useState([]);
+	const [submit, setSubmit] = useState(false);
+	const [errorWithAlert, setErrorWithAlert] = useState({ message: '', title: '' });
 	const history = useHistory();
 	const matches = useMediaQuery('(max-width:600px)');
+	const [loading, setLoading] = useState(false);
 	const handleChoices = (e) => {
 		let raw = { qstID: number, option: e.target.value, doubt: Boolean(answer[number].doubt) };
 		if (answer[number].qstID === number) {
@@ -147,26 +154,77 @@ const QuestionBox = ({ dum, paperID }) => {
 		answer[number].option = '';
 		setAnswer([...answer]);
 	};
-	const handleSubmit = async () => {
+	const handleErrorAlert = useCallback(() => {
+		setOpenErrorAlert(false);
+	}, []);
+	const handelSubmit = () => {
+		setOpen(true);
+	};
+	const handleSubmitDialogNext = useCallback((v) => {
+		setOpen(false);
+		if (v) setSubmit(true);
+		setOpen(false);
+	}, []);
+	const onSubmitting = useCallback(async () => {
+		setLoading(true);
 		try {
-			console.log(answer);
 			let res = await Axios.put(`http://localhost:8080/api/exam-result/${paperID}`, { selected: answer });
 			localStorage.removeItem(`paper${paperID}`);
+			localStorage.removeItem('username');
+			localStorage.removeItem('paperID');
 			history.push(`/result/${paperID}?resid=${res.data.result_id}`);
 		} catch (err) {
-			alert(err);
-			console.log(err);
+			if (err.response) {
+				setErrorWithAlert({ title: err.response.statusText, message: err.response.data.message });
+			} else {
+				setErrorWithAlert({ message: err.toString() });
+			}
+			setOpenErrorAlert(true);
+			setLoading(false);
 		}
-	};
+	}, [answer, history, paperID]);
 	useEffect(() => {
 		for (let i = 0; i < dum.length; i++) setAnswer((prev) => [...prev, { qstID: i, option: '', doubt: false }]);
 	}, [dum.length]);
+	useEffect(() => {
+		if (submit) onSubmitting();
+	}, [onSubmitting, submit]);
 	const handleNext = () => number < dum.length - 1 && setNumber(number + 1);
 	const handlePrev = () => number > 0 && setNumber(number - 1);
-	// window.onbeforeunload = function () {return false;}
+	window.onbeforeunload = function () {
+		return false;
+	};
 
 	return (
 		<>
+			<Box
+				justifyContent="center"
+				alignItems="center"
+				zIndex={99999}
+				display={loading ? 'flex' : 'none'}
+				position="absolute"
+				top={0}
+				left={0}
+				width="100vw"
+				height="100vh"
+			>
+				<CircularProgress />
+			</Box>
+			<AlertDialog
+				title={errorWithAlert.title}
+				open={openErrorAlert}
+				handleClose={handleErrorAlert}
+				btnYes="Kembali"
+				message={errorWithAlert.message}
+			/>
+			<AlertDialog
+				title="Kirim hasil pekerjaan?"
+				open={open}
+				handleClose={handleSubmitDialogNext}
+				btnYes="Kirim"
+				btnNo="Batal"
+				message="Apa anda yakin akan mengirim jawaban?..."
+			/>
 			<Paper elevation={8} className={classes.questionBox}>
 				<AppBar color="transparent" position="static" elevation={0}>
 					<Toolbar className={classes.toolBar}>
@@ -242,7 +300,7 @@ const QuestionBox = ({ dum, paperID }) => {
 						Ragu-Ragu
 					</Button>
 					{number === dum.length - 1 ? (
-						<Button disableElevation onClick={handleSubmit} color="secondary" endIcon={<SendRounded />}>
+						<Button disableElevation onClick={handelSubmit} color="secondary" endIcon={<SendRounded />}>
 							<Hidden mdDown>Kumpulkan</Hidden>
 						</Button>
 					) : (

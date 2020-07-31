@@ -1,21 +1,18 @@
-import React, { useState } from 'react';
-import {
-	Grid,
-	makeStyles,
-	Typography,
-	Box,
-	Divider,
-	FormControl,
-	RadioGroup,
-	FormControlLabel,
-	Radio,
-	FormLabel,
-	FormHelperText,
-} from '@material-ui/core';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouteMatch } from 'react-router-dom';
+import Grid from '@material-ui/core/Grid';
+import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import Box from '@material-ui/core/Box';
+import FormControl from '@material-ui/core/FormControl';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Radio from '@material-ui/core/Radio';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import DoughnutChart from './DoughnutChart';
 import StackChart from './StackChart';
-import { useRouteMatch } from 'react-router-dom';
-import { useEffect } from 'react';
+import AlerttDialog from '../../components/AlertDialog';
 import Axios from 'axios';
 
 const useStyles = makeStyles((theme) => ({
@@ -51,6 +48,9 @@ function ResultPage() {
 	const [dataResult, setDataResult] = useState({});
 	const [dataDoughnut, setDataDoughnut] = useState([]);
 	const [dataStack, setDataStack] = useState({ labels: [], correct: [], incorrect: [], blank: [] });
+	const [open, setOpen] = useState(false);
+	const [errorWithAlert, setErrorWithAlert] = useState({ message: '', title: '' });
+	const handleClose = useCallback(() => setOpen(false), []);
 	const urlParams = new URLSearchParams(window.location.search);
 	const resid = urlParams.get('resid');
 	useEffect(() => {
@@ -59,13 +59,17 @@ function ResultPage() {
 				let res = await Axios.get(`http://localhost:8080/api/exam-result/${match.params.id}?resid=${resid}`);
 				setDataResult(res.data.result);
 			} catch (err) {
-				console.log(err);
+				if (err.response) {
+					setErrorWithAlert({ title: err.response.statusText, message: err.response.data.message });
+				} else {
+					setErrorWithAlert({ message: err.toString() });
+				}
+				setOpen(true);
 			}
 		};
 		getExamResult();
 	}, [match.params.id, resid]);
 	useEffect(() => {
-		console.log(dataResult.questions);
 		if (Object.keys(dataResult).length === 0) return;
 		let dough = [dataResult.result.overall.correct, dataResult.result.overall.incorrect, dataResult.result.overall.blank];
 		let stack = {
@@ -77,7 +81,7 @@ function ResultPage() {
 		setDataDoughnut(dough);
 		setDataStack(stack);
 	}, [dataResult]);
-	return (
+	return Object.keys(dataResult).length !== 0 ? (
 		<div className={classes.root}>
 			<Box mb={5} display="flex">
 				<Typography variant="h4">Analisis Hasil</Typography>
@@ -102,9 +106,11 @@ function ResultPage() {
 					<Box>
 						<Box>
 							{dataResult.questions?.map((v, i) => (
-								<Box mt={2} mb={2}>
+								<Box key={i} mt={2} mb={2}>
 									<FormControl key={i} error={v.selected !== v.key && v.selected !== ''} component="fieldset">
-										<Typography component="legend">{i + 1}. {v.question}</Typography>
+										<Typography component="legend">
+											{i + 1}. {v.question}
+										</Typography>
 										<RadioGroup value={v.selected}>
 											{v.options.map((v2, i2) => (
 												<FormControlLabel key={i2} value={v2.optID} control={<Radio color="primary" />} label={v2.option} />
@@ -120,7 +126,12 @@ function ResultPage() {
 					</Box>
 				</Grid>
 			</Grid>
+			<AlerttDialog open={open} handleClose={handleClose} btnYes="Tutup" message={errorWithAlert?.message} title={errorWithAlert?.title} />
 		</div>
+	) : (
+		<Box width="100vw" height="100vh" display="flex" justifyContent="center" alignItems="center">
+			<CircularProgress color="primary" />
+		</Box>
 	);
 }
 

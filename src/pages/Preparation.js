@@ -53,7 +53,7 @@ function Preparation() {
 	const [paper, setPaper] = useState({});
 	const history = useHistory();
 	const [open, setOpen] = useState(false);
-	const [errorWithAlert, setErrorWithAlert] = useState({message:'', title: '' });
+	const [errorWithAlert, setErrorWithAlert] = useState({ message: '', title: '' });
 	const handleInputForm = (e) => {
 		setInputForm({ ...inputForm, [e.target.name]: e.target.value });
 	};
@@ -66,13 +66,13 @@ function Preparation() {
 			setPaper(res.data.paper);
 			setLoading(false);
 		} catch (err) {
-			setOpen(true);
 			setLoading(false);
-			if(err.response) {
-				setErrorWithAlert({title: err.response.statusText, message: err.response.data.message })
-			}else {
-				setErrorWithAlert({ message: err.toString()})
+			if (err.response) {
+				setErrorWithAlert({ title: err.response.statusText, message: err.response.data.message });
+			} else {
+				setErrorWithAlert({ message: err.toString() });
 			}
+			setOpen(true);
 		}
 	};
 	const handleStart = (e) => {
@@ -182,13 +182,7 @@ function Preparation() {
 					</Slide>
 				</div>
 			)}
-			<AlerttDialog
-				open={open}
-				handleClose={handleClose}
-				btnYes="Tutup"
-				message={errorWithAlert?.message}
-				title={errorWithAlert?.title}
-			/>
+			<AlerttDialog open={open} handleClose={handleClose} btnYes="Tutup" message={errorWithAlert?.message} title={errorWithAlert?.title} />
 		</>
 	);
 }

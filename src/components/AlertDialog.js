@@ -7,28 +7,29 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 function AlertDialog({ handleClose, open, title, message, btnYes, btnNo }) {
-	console.log('ok')
+	console.log('ok');
+	const handleValue = (v) => {
+		handleClose(v);
+	};
 	return (
-		<div>
-			<Dialog open={open} onClose={handleClose} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
-				<DialogTitle id="alert-dialog-title">{title}</DialogTitle>
-				<DialogContent>
-					<DialogContentText id="alert-dialog-description">{message}</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					{btnNo && (
-						<Button onClick={handleClose} color="primary">
-							{btnNo}
-						</Button>
-					)}
-					{btnYes && (
-						<Button onClick={handleClose} color="primary" autoFocus>
-							{btnYes}
-						</Button>
-					)}
-				</DialogActions>
-			</Dialog>
-		</div>
+		<Dialog open={open} onClose={handleClose} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
+			<DialogTitle id="alert-dialog-title">{title}</DialogTitle>
+			<DialogContent>
+				<DialogContentText id="alert-dialog-description">{message}</DialogContentText>
+			</DialogContent>
+			<DialogActions>
+				{btnNo && (
+					<Button onClick={() => handleValue(false)} color="primary">
+						{btnNo}
+					</Button>
+				)}
+				{btnYes && (
+					<Button onClick={() => handleValue(true)} color="primary" autoFocus>
+						{btnYes}
+					</Button>
+				)}
+			</DialogActions>
+		</Dialog>
 	);
 }
 
