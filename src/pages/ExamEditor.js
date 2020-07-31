@@ -31,6 +31,8 @@ import Table from '@material-ui/core/Table';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import TableBody from '@material-ui/core/TableBody';
+import Axios from 'axios';
+import LinearProgress from '@material-ui/core/LinearProgress';
 
 const useStyles = makeStyles((theme) => ({
 	root: {
@@ -81,23 +83,33 @@ function ExamEditor() {
 	const classes = useStyles();
 	const matches = useMediaQuery('(max-width:960px)');
 	const [open, setOpen] = useState(false);
+	const [loading, setLoading] = useState(false);
 	const [questions, setQuestions] = useState([]);
 	const [detail, setDetail] = useState({
 		title: '',
 		subject: '',
-		description: ''
+		description: '',
+		startFrom: 0,
+		endAt: 0,
 	}); // Title, description, subject
 	const handleDetailChange = (e) => setDetail((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-	const handleStartDate = (date) => setDetail((prev) => ({ ...prev, startDate: sinceEpoch(date._d) }));
-	const handleEndDate = (date) => setDetail((prev) => ({ ...prev, endDate: sinceEpoch(date._d) }));
-	const handleSave = () => {
-		console.log(detail, questions)
+	const hanldeStartFrom = (date) => setDetail((prev) => ({ ...prev, startFrom: sinceEpoch(date._d) }));
+	const handleEndAt = (date) => setDetail((prev) => ({ ...prev, endAt: sinceEpoch(date._d) }));
+	const handleSave = async () => {
+		setLoading(true);
+		try {
+			await Axios.post('http://localhost:8080/api/papers', { ...detail, questions });
+		} catch (e) {
+			alert('failed to add paper');
+		}
+		setLoading(false);
 	};
 	return (
 		<div className={classes.root}>
+			{loading && <LinearProgress style={{ position: 'fixed', width: '100vw', zIndex: 999 }} color="secondary" />}
 			<div className={classes.editorPage}>
 				<Box mb={2}>
-					<IconButton onClick={handleSave}>
+					<IconButton disabled={loading} onClick={handleSave}>
 						<SaveIcon />
 					</IconButton>
 					<IconButton>
@@ -119,13 +131,7 @@ function ExamEditor() {
 							<TextField onBlur={handleDetailChange} name="subject" label="Subject" fullWidth />
 						</Grid>
 						<Grid item xs={12}>
-							<TextField
-								onBlur={handleDetailChange}
-								name="description"
-								multiline
-								label="Description"
-								fullWidth
-							/>
+							<TextField onBlur={handleDetailChange} name="description" multiline label="Description" fullWidth />
 						</Grid>
 						<MuiPickersUtilsProvider utils={DateFnsUtils}>
 							<Grid item xs={6}>
@@ -133,8 +139,8 @@ function ExamEditor() {
 									margin="normal"
 									id="date-time-picker"
 									label="Start from"
-									value={detail.startDate}
-									onChange={handleStartDate}
+									value={detail.startFrom}
+									onChange={hanldeStartFrom}
 									fullWidth
 								/>
 							</Grid>
@@ -143,8 +149,8 @@ function ExamEditor() {
 									margin="normal"
 									id="date2-time-picker"
 									label="End at"
-									value={detail.endDate}
-									onChange={handleEndDate}
+									value={detail.endAt}
+									onChange={handleEndAt}
 									fullWidth
 								/>
 							</Grid>
@@ -178,21 +184,20 @@ function ExamEditor() {
 						<AccordionDetails>
 							<Table>
 								<TableBody>
-									{[
-										'question',
-										'category',
-										'key',
-										'optionA',
-										'optionB',
-										'optionC',
-										'optionD',
-										'optionE',
-									].map((v, i) => (
-										<TableRow key={i}>
-											<TableCell>{v}</TableCell>
-											<TableCell>{question[v]}</TableCell>
-										</TableRow>
-									))}
+									<>
+										{['question', 'category', 'key'].map((v, i) => (
+											<TableRow key={i}>
+												<TableCell>{v.toUpperCase()}</TableCell>
+												<TableCell>{question[v]}</TableCell>
+											</TableRow>
+										))}
+										{question.options.map((e, i) => (
+											<TableRow key={i}>
+												<TableCell>{e.optID.toUpperCase()}</TableCell>
+												<TableCell>{e.option}</TableCell>
+											</TableRow>
+										))}
+									</>
 								</TableBody>
 							</Table>
 						</AccordionDetails>
@@ -206,11 +211,12 @@ function ExamEditor() {
 function EditorDialog({ setOpen, setQuestions, questions }) {
 	const [question, setQuestion] = useState({
 		key: '',
-		optionA: '',
-		optionB: '',
-		optionC: '',
-		optionD: '',
-		optionE: '',
+		category: '',
+		a: '',
+		b: '',
+		c: '',
+		d: '',
+		e: '',
 		question: '',
 	});
 	const [alert, setAlert] = useState(false);
@@ -221,7 +227,19 @@ function EditorDialog({ setOpen, setQuestions, questions }) {
 		for (let k in question) {
 			if (!question[k]) return;
 		}
-		setQuestions([...questions, question]);
+		let cooked = {
+			question: question.question,
+			category: question.category,
+			key: question.key,
+			options: [
+				{ optID: 'a', option: question.a },
+				{ optID: 'b', option: question.b },
+				{ optID: 'c', option: question.c },
+				{ optID: 'd', option: question.d },
+				{ optID: 'e', option: question.e },
+			],
+		};
+		setQuestions([...questions, cooked]);
 		setOpen(false);
 	};
 	const handlerDiscard = () => {
@@ -248,9 +266,7 @@ function EditorDialog({ setOpen, setQuestions, questions }) {
 			>
 				<DialogTitle id="alert-dialog-title">Keluar?</DialogTitle>
 				<DialogContent>
-					<DialogContentText id="alert-dialog-description">
-						Apa anda yakin tidak akan menyimpan yang anda tulis?
-					</DialogContentText>
+					<DialogContentText id="alert-dialog-description">Apa anda yakin tidak akan menyimpan yang anda tulis?</DialogContentText>
 				</DialogContent>
 				<DialogActions>
 					<Button onClick={() => alertHandler(false)} color="primary">
@@ -269,27 +285,16 @@ function EditorDialog({ setOpen, setQuestions, questions }) {
 			<DialogContent>
 				<FormControl fullWidth>
 					<Box mt={2}>
-						<TextField
-							onBlur={questionHandlerChange}
-							name="question"
-							multiline
-							fullWidth
-							label="Question"
-						></TextField>
+						<TextField onBlur={questionHandlerChange} name="question" multiline fullWidth label="Question"></TextField>
 					</Box>
 					<Box mt={2}>
-						<TextField
-							onBlur={questionHandlerChange}
-							name="category"
-							fullWidth
-							label="Category/Sub bab"
-						></TextField>
+						<TextField onBlur={questionHandlerChange} name="category" fullWidth label="Category/Sub bab"></TextField>
 					</Box>
 					<RadioGroup name="key" onChange={questionHandlerChange} value={question.key}>
-						{['A', 'B', 'C', 'D', 'E'].map((v, i) => (
+						{['a', 'b', 'c', 'd', 'e'].map((v, i) => (
 							<Box key={i} mt={2} display="flex">
-								<Radio value={`option${v}`} />
-								<TextField onBlur={questionHandlerChange} name={`option${v}`} label={v} fullWidth />
+								<Radio value={v} />
+								<TextField onBlur={questionHandlerChange} name={v} label={v.toUpperCase()} fullWidth />
 							</Box>
 						))}
 					</RadioGroup>

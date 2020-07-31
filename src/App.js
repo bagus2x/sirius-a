@@ -12,6 +12,9 @@ import { theme } from './utils/theme';
 import { Provider } from 'react-redux';
 import ExamEditor from './pages/ExamEditor';
 import Error from './pages/Error';
+import ExamPage from './pages/ExamPage';
+import ResultPage from './pages/ResultPage/index.js';
+import Preparation from './pages/Preparation';
 
 function App() {
 	return (
@@ -38,6 +41,15 @@ function Routes() {
 				</Route>
 				<Route path="/exam-editor">
 					<ExamEditor />
+				</Route>
+				<Route path="/exam/:id?">
+					<ExamPage />
+				</Route>
+				<Route path="/preparation">
+					<Preparation />
+				</Route>
+				<Route path="/result/:id">
+					<ResultPage />
 				</Route>
 				<Route path="/u">
 					<UserPage />

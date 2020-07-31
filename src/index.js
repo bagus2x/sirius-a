@@ -4,10 +4,10 @@ import * as serviceWorker from './serviceWorker';
 import App from './App';
 
 ReactDOM.render(
-	<React.StrictMode>
+	// <React.StrictMode>
 		<App />
-	</React.StrictMode>,
-	document.getElementById('root')
+	// </React.StrictMode>,
+	,document.getElementById('root')
 );
 
 serviceWorker.register();
