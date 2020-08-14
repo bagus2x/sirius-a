@@ -13,6 +13,8 @@ import Axios from 'axios';
 import { TableContainer, Table, TableBody, TableRow, Paper, TableCell, LinearProgress } from '@material-ui/core';
 import AlerttDialog from '../components/AlertDialog';
 import { useCallback } from 'react';
+import { Helmet } from 'react-helmet'
+
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
@@ -62,7 +64,7 @@ function Preparation() {
 		if (!inputForm.paperID || !inputForm.username || !inputForm.userID) return;
 		setLoading(true);
 		try {
-			let res = await Axios.get(`http://localhost:8080/api/papers/${inputForm.paperID}`);
+			let res = await Axios.get(`https://sirius-b.herokuapp.com/api/papers/${inputForm.paperID}`);
 			setPaper(res.data.paper);
 			setLoading(false);
 		} catch (err) {
@@ -86,6 +88,9 @@ function Preparation() {
 	const handleClose = useCallback(() => setOpen(false), []);
 	return (
 		<>
+			<Helmet>
+				<title>SIRIUS CBT</title>
+			</Helmet>
 			{loading && <LinearProgress style={{ position: 'absolute', width: '100%', top: 0 }} />}
 			{Object.keys(paper).length === 0 ? (
 				<Container component="main" maxWidth="xs">
@@ -145,7 +150,7 @@ function Preparation() {
 								color="primary"
 								className={classes.submit}
 							>
-								Cari Soal
+								Masuk Ujian
 							</Button>
 						</form>
 					</div>

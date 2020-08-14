@@ -7,12 +7,17 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 function AlertDialog({ handleClose, open, title, message, btnYes, btnNo }) {
-	console.log('ok');
 	const handleValue = (v) => {
 		handleClose(v);
 	};
 	return (
-		<Dialog open={open} onClose={handleClose} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
+		<Dialog
+			disableBackdropClick
+			open={open}
+			onClose={handleClose}
+			aria-labelledby="alert-dialog-title"
+			aria-describedby="alert-dialog-description"
+		>
 			<DialogTitle id="alert-dialog-title">{title}</DialogTitle>
 			<DialogContent>
 				<DialogContentText id="alert-dialog-description">{message}</DialogContentText>

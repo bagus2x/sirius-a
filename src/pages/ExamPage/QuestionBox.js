@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
 import Paper from '@material-ui/core/Paper';
 import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
-import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 import FormControl from '@material-ui/core/FormControl';
 import RadioGroup from '@material-ui/core/RadioGroup';
@@ -24,25 +22,27 @@ import CheckBoxRounded from '@material-ui/icons/CheckBoxRounded';
 import CloseRounded from '@material-ui/icons/CloseRounded';
 import blue from '@material-ui/core/colors/blue';
 import yellow from '@material-ui/core/colors/yellow';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import green from '@material-ui/core/colors/green';
 import Axios from 'axios';
 import { useHistory } from 'react-router-dom';
 import AlertDialog from '../../components/AlertDialog';
 import { CircularProgress } from '@material-ui/core';
+import parse from 'html-react-parser';
 
 const useStyles = makeStyles((theme) => ({
 	questionBox: {
-		height: window.innerHeight - 120,
+		maxHeight: window.innerHeight - 120,
 		width: '80vw',
-		background: '#fff',
 		position: 'absolute',
 		top: 70,
-		borderRadius: theme.spacing(3),
-		padding: `${theme.spacing(2)}px ${theme.spacing(5)}px ${theme.spacing(5)}px`,
+		borderRadius: theme.spacing(2),
+		padding: theme.spacing(2),
 		boxSizing: 'border-box',
 		overflowY: 'hidden',
 		zIndex: 999,
+		display: 'grid',
+		gridTemplateRows: 'auto 1fr auto',
+		gap: theme.spacing(2),
 	},
 	number: {
 		margin: '0 5px',
@@ -51,18 +51,6 @@ const useStyles = makeStyles((theme) => ({
 		textAlign: 'center',
 		color: '#fff',
 		borderRadius: theme.spacing(0.5),
-	},
-	toolBar: {
-		justifyContent: 'space-between',
-		padding: 0,
-	},
-	questionWrapper: {
-		width: '100%',
-		borderBottom: `1px solid ${theme.palette.grey[400]}`,
-		paddingBottom: theme.spacing(2.5),
-		boxSizing: 'border-box',
-		height: '80%',
-		overflowY: 'auto',
 	},
 	doubtButton: {
 		color: theme.palette.warning.main,
@@ -119,9 +107,8 @@ const useStyles = makeStyles((theme) => ({
 	[theme.breakpoints.down('xs')]: {
 		questionBox: {
 			width: '100vw',
-			height: window.innerHeight - 70,
-			padding: `${theme.spacing(2)}px ${theme.spacing(2)}px ${theme.spacing(4)}px`,
-			borderRadius: `${theme.spacing(2)}px ${theme.spacing(2)}px 0 0`,
+			minHeight: window.innerHeight - 70,
+			borderRadius: `${theme.spacing(1)}px ${theme.spacing(1)}px 0 0`,
 		},
 	},
 }));
@@ -136,16 +123,18 @@ const QuestionBox = ({ dum, paperID }) => {
 	const [submit, setSubmit] = useState(false);
 	const [errorWithAlert, setErrorWithAlert] = useState({ message: '', title: '' });
 	const history = useHistory();
-	const matches = useMediaQuery('(max-width:600px)');
 	const [loading, setLoading] = useState(false);
-	const handleChoices = (e) => {
-		let raw = { qstID: number, option: e.target.value, doubt: Boolean(answer[number].doubt) };
-		if (answer[number].qstID === number) {
-			answer[number] = raw;
-			setAnswer([...answer]);
-		}
-		// setAnswer((prev) => prev.map((ans) => (ans.qstID === number + 1 ? raw : ans)));
-	};
+	const handleChoices = useCallback(
+		(e) => {
+			let raw = { qstID: number, option: e.target.value, doubt: Boolean(answer[number].doubt) };
+			if (answer[number].qstID === number) {
+				answer[number] = raw;
+				setAnswer([...answer]);
+			}
+			// setAnswer((prev) => prev.map((ans) => (ans.qstID === number + 1 ? raw : ans)));
+		},
+		[answer, number]
+	);
 	const handleDoubtButton = () => {
 		answer[number].doubt = !answer[number].doubt;
 		setAnswer([...answer]);
@@ -168,9 +157,8 @@ const QuestionBox = ({ dum, paperID }) => {
 	const onSubmitting = useCallback(async () => {
 		setLoading(true);
 		try {
-			let res = await Axios.put(`http://localhost:8080/api/exam-result/${paperID}`, { selected: answer });
+			let res = await Axios.put(`https://sirius-b.herokuapp.com/api/exam-result/${paperID}`, { selected: answer });
 			localStorage.removeItem(`paper${paperID}`);
-			localStorage.removeItem('username');
 			localStorage.removeItem('paperID');
 			history.push(`/result/${paperID}?resid=${res.data.result_id}`);
 		} catch (err) {
@@ -226,50 +214,43 @@ const QuestionBox = ({ dum, paperID }) => {
 				message="Apa anda yakin akan mengirim jawaban?..."
 			/>
 			<Paper elevation={8} className={classes.questionBox}>
-				<AppBar color="transparent" position="static" elevation={0}>
-					<Toolbar className={classes.toolBar}>
-						<Box display="flex" alignItems="center">
-							<Hidden mdDown>
-								<Typography variant="body2">SOAL NO</Typography>
-							</Hidden>
-							<Typography className={classes.number} variant="body1">
-								{number + 1}
-							</Typography>
-						</Box>
-						{/* <Typography variant="h6">38:02:15</Typography> */}
-						<Hidden lgUp>
-							<IconButton onClick={() => setDrawer(!drawer)} color="primary">
-								<AppsRounded />
-							</IconButton>
-						</Hidden>
+				<Box display="flex" justifyContent="space-between">
+					<Box display="flex" alignItems="center">
 						<Hidden mdDown>
-							<Tooltip className={classes.tooltip} enterDelay={500} disableFocusListener title="Tampilkan seluruh daftar soal">
-								<Button onClick={() => setDrawer(!drawer)} color="primary" disableElevation startIcon={<AppsRounded />}>
-									Daftar Soal
-								</Button>
-							</Tooltip>
+							<Typography variant="body2">SOAL NO</Typography>
 						</Hidden>
-					</Toolbar>
-				</AppBar>
-				<Box mt={2} className={classes.questionWrapper}>
-					<Typography variant="body1">{dum[number].question}</Typography>
-					{dum[number].image && (
-						<Box mt={2} mb={2}>
-							<img width={`${matches ? '100%' : '50%'}`} src={dum[number].image} alt={`imagenumber${number}`} />
-						</Box>
-					)}
-					<Box mt={2}>
+						<Typography className={classes.number} variant="body1">
+							{number + 1}
+						</Typography>
+					</Box>
+					{/* <Typography variant="h6">38:02:15</Typography> */}
+					<Hidden lgUp>
+						<IconButton onClick={() => setDrawer(!drawer)} color="primary">
+							<AppsRounded />
+						</IconButton>
+					</Hidden>
+					<Hidden mdDown>
+						<Tooltip className={classes.tooltip} enterDelay={500} disableFocusListener title="Tampilkan seluruh daftar soal">
+							<Button onClick={() => setDrawer(!drawer)} color="primary" disableElevation startIcon={<AppsRounded />}>
+								Daftar Soal
+							</Button>
+						</Tooltip>
+					</Hidden>
+				</Box>
+				<Box fontSize="1rem" style={{ overflowY: 'auto' }}>
+					{parse(dum[number].question)}
+					<Box marginTop={2}>
 						<FormControl component="fieldset">
 							<RadioGroup value={answer[number]?.option || ''} onFocus={handleChoices} aria-label="gender" name="gender1">
-								{dum[number].options.map((option, i) =>
-									option.image ? (
+								{dum[number].options?.map((option, i) =>
+									option.image.url ? (
 										<Box display="flex" alignItems="center" marginTop={2} key={i}>
 											<Radio disableRipple color="primary" value={option.optID} />
-											<img width={`${matches ? '100%' : '50%'}`} src={option.image} alt={option.image} />
+											<img width={dum[number].image.size} src={option.image} alt={option.image} />
 										</Box>
 									) : (
 										<FormControlLabel
-											style={{ marginLeft: 0 }}
+											style={{ marginLeft: 0, marginBottom: 10 }}
 											value={option.optID}
 											control={<Radio disableRipple color="primary" />}
 											label={option.option}
@@ -282,33 +263,35 @@ const QuestionBox = ({ dum, paperID }) => {
 					</Box>
 					<Box mt={2} mb={2} style={{ cursor: 'pointer' }} onClick={handleRemoveValue} display="inline-flex">
 						<Typography color="error" variant="caption">
-							Reset
+							Kosongkan
 						</Typography>
 					</Box>
 				</Box>
-				<Box mt={2} display="flex" justifyContent="space-between">
-					<Button disableElevation onClick={handlePrev} color="primary" startIcon={<ArrowBackIosRounded />}>
-						<Hidden mdDown>Sebelumnya</Hidden>
-					</Button>
-					<Button
-						className={classes.doubtButton}
-						onClick={handleDoubtButton}
-						disableElevation
-						color="primary"
-						startIcon={answer[number]?.doubt ? <CheckBoxRounded /> : <CheckBoxOutlineBlankRounded />}
-					>
-						Ragu-Ragu
-					</Button>
-					{number === dum.length - 1 ? (
-						<Button disableElevation onClick={handelSubmit} color="secondary" endIcon={<SendRounded />}>
-							<Hidden mdDown>Kumpulkan</Hidden>
+				<div>
+					<Box display="flex" justifyContent="space-between">
+						<Button disableElevation onClick={handlePrev} color="primary" startIcon={<ArrowBackIosRounded />}>
+							<Hidden mdDown>Sebelumnya</Hidden>
 						</Button>
-					) : (
-						<Button disableElevation onClick={handleNext} color="primary" endIcon={<ArrowForwardIosRounded />}>
-							<Hidden mdDown>Selanjutnya</Hidden>
+						<Button
+							className={classes.doubtButton}
+							onClick={handleDoubtButton}
+							disableElevation
+							color="primary"
+							startIcon={answer[number]?.doubt ? <CheckBoxRounded /> : <CheckBoxOutlineBlankRounded />}
+						>
+							Ragu-Ragu
 						</Button>
-					)}
-				</Box>
+						{number === dum.length - 1 ? (
+							<Button disableElevation onClick={handelSubmit} color="secondary" endIcon={<SendRounded />}>
+								<Hidden mdDown>Kumpulkan</Hidden>
+							</Button>
+						) : (
+							<Button disableElevation onClick={handleNext} color="primary" endIcon={<ArrowForwardIosRounded />}>
+								<Hidden mdDown>Selanjutnya</Hidden>
+							</Button>
+						)}
+					</Box>
+				</div>
 			</Paper>
 			<Drawer keepMounted className={classes.drawer} anchor="right" onClose={() => setDrawer(false)} open={drawer}>
 				<Box p={2} display="flex" alignItems="center" justifyContent="space-between">

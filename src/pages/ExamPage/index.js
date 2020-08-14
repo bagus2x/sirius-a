@@ -17,6 +17,7 @@ const useStyles = makeStyles((theme) => ({
 		height: window.innerHeight,
 		background: `url(${BG})`,
 		userSelect: 'none',
+		boxSizing: 'border-box'
 	},
 	appBar: {
 		height: 120,
@@ -49,6 +50,11 @@ const ExamPage = () => {
 		if (paperID && !raw) history.push('/preparation');
 	}, [history, paperID]);
 
+	window.history.pushState(null, '', window.location.href);
+	window.onpopstate = function () {
+		window.history.pushState(null, '', window.location.href);
+	};
+
 	return (
 		<div className={classes.examPage}>
 			<AppBar className={classes.appBar} elevation={0} position="fixed" color="primary">
@@ -63,8 +69,7 @@ const ExamPage = () => {
 					<Box display="flex">
 						<Hidden mdDown>
 							<Box mr={1} display="flex" flexDirection="column" alignItems="flex-end">
-								<Typography>{localStorage.getItem("username")}</Typography>
-								<Typography variant="body2">{localStorage.getItem("userID")}</Typography>
+								<Typography>{localStorage.getItem('username')}</Typography>
 							</Box>
 						</Hidden>
 						<Avatar>T</Avatar>

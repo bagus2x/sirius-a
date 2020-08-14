@@ -14,11 +14,14 @@ import DoughnutChart from './DoughnutChart';
 import StackChart from './StackChart';
 import AlerttDialog from '../../components/AlertDialog';
 import Axios from 'axios';
+import parse from 'html-react-parser';
+import Divider from '@material-ui/core/Divider';
 
 const useStyles = makeStyles((theme) => ({
 	root: {
 		width: '100%',
 		padding: `${theme.spacing(5)}px ${theme.spacing(15)}px`,
+		overflowX: 'hidden',
 	},
 	bar: {
 		height: 40,
@@ -29,6 +32,13 @@ const useStyles = makeStyles((theme) => ({
 		display: 'flex',
 		alignItems: 'center',
 		borderRadius: theme.spacing(0.5),
+	},
+	solution: {
+		background: theme.palette.grey[50],
+		textAlign: 'justify',
+		padding: theme.spacing(2),
+		borderRadius: `0 ${theme.spacing(2)}px ${theme.spacing(2)}px ${theme.spacing(2)}px`,
+		marginBottom: theme.spacing(2),
 	},
 	[theme.breakpoints.down('md')]: {
 		root: {
@@ -56,7 +66,7 @@ function ResultPage() {
 	useEffect(() => {
 		const getExamResult = async () => {
 			try {
-				let res = await Axios.get(`http://localhost:8080/api/exam-result/${match.params.id}?resid=${resid}`);
+				let res = await Axios.get(`https://sirius-b.herokuapp.com/api/exam-result/${match.params.id}?resid=${resid}`);
 				setDataResult(res.data.result);
 			} catch (err) {
 				if (err.response) {
@@ -86,6 +96,7 @@ function ResultPage() {
 			<Box mb={5} display="flex">
 				<Typography variant="h4">Analisis Hasil</Typography>
 			</Box>
+			<Typography variant="caption">Nama: {localStorage.getItem('username')}</Typography>
 			<Grid spacing={4} container>
 				<Grid item xs={12} md={6}>
 					<Box className={classes.bar}>
@@ -104,25 +115,37 @@ function ResultPage() {
 						<Typography variant="h6">PEMBAHASAN</Typography>
 					</Box>
 					<Box>
-						<Box>
-							{dataResult.questions?.map((v, i) => (
-								<Box key={i} mt={2} mb={2}>
-									<FormControl key={i} error={v.selected !== v.key && v.selected !== ''} component="fieldset">
-										<Typography component="legend">
-											{i + 1}. {v.question}
-										</Typography>
-										<RadioGroup value={v.selected}>
-											{v.options.map((v2, i2) => (
-												<FormControlLabel key={i2} value={v2.optID} control={<Radio color="primary" />} label={v2.option} />
-											))}
-										</RadioGroup>
-										{v.selected !== v.key && v.selected !== '' && (
-											<FormHelperText>Jawaban yang benar adalah {v.key}</FormHelperText>
-										)}
-									</FormControl>
-								</Box>
-							))}
-						</Box>
+						{dataResult.questions?.map((v, i) => (
+							<Box key={i} mt={2} mb={2}>
+								<FormControl key={i} error={v.selected !== v.key && v.selected !== ''} component="fieldset">
+									<Box fontSize="1rem" component="legend">
+										{i + 1}. {parse(v.question)}
+									</Box>
+									<RadioGroup value={v.selected}>
+										{v.options.map((v2, i2) => (
+											<FormControlLabel
+												style={{ marginBottom: 10 }}
+												key={i2}
+												value={v2.optID}
+												control={<Radio color="primary" />}
+												label={v2.option}
+											/>
+										))}
+									</RadioGroup>
+									{v.selected !== v.key || v.selected === '' ? (
+										<FormHelperText>Jawaban yang benar adalah {v.key}</FormHelperText>
+									) : (
+										''
+									)}
+								</FormControl>
+								{v.solution && (
+									<Box className={classes.solution}>
+										{parse(v.solution)}
+									</Box>
+								)}
+								<Divider />
+							</Box>
+						))}
 					</Box>
 				</Grid>
 			</Grid>
