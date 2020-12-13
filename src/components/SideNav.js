@@ -71,8 +71,8 @@ function UserNav() {
 	const path = useRouteMatch().params.nav || '';
 	// prevent flickering sidebar on render
 	// 0 = width <= 600px, 1 = width > 600px
-	const matcheDesktop = useMediaQuery('(min-width:600px)');
-	const matcheMobile = useMediaQuery('(max-width:600px)');
+	const matcheDesktop = useMediaQuery('(min-width:960px)');
+	const matcheMobile = useMediaQuery('(max-width:960px)');
 	useEffect(() => {
 		switch (path) {
 			case '':
